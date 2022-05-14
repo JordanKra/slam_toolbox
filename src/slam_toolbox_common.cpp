@@ -145,6 +145,9 @@ void SlamToolbox::setParams()
   throttle_scans_ = 1;
   throttle_scans_ = this->declare_parameter("throttle_scans", throttle_scans_);
 
+  publish_odom_ = false;
+  publish_odom_ = this->declare_parameter("publish_odom", publish_odom_);
+
   enable_interactive_mode_ = false;
   enable_interactive_mode_ = this->declare_parameter("enable_interactive_mode",
       enable_interactive_mode_);
@@ -187,6 +190,8 @@ void SlamToolbox::setROSInterfaces()
   sstm_ = this->create_publisher<nav_msgs::msg::MapMetaData>(
     map_name_ + "_metadata",
     rclcpp::QoS(rclcpp::KeepLast(1)).transient_local().reliable());
+  odom_pub_ = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            "slam_toolbox/odom", rclcpp::SensorDataQoS());
   ssMap_ = this->create_service<nav_msgs::srv::GetMap>("slam_toolbox/dynamic_map",
       std::bind(&SlamToolbox::mapCallback, this, std::placeholders::_1,
       std::placeholders::_2, std::placeholders::_3));
@@ -219,6 +224,32 @@ void SlamToolbox::publishTransformLoop(
   const double & transform_publish_period)
 /*****************************************************************************/
 {
+
+  if(publish_odom_){
+    while(rclcpp::ok()){
+        boost::mutex::scoped_lock lock(map_to_odom_mutex_);
+        rclcpp::Time scan_timestamp = scan_header.stamp;
+        geometry_msgs::msg::PoseWithCovarianceStamped msg;
+        msg.header.frame_id = odom_frame_;
+        msg.header.stamp = scan_timestamp;
+        //Use the map to odom transform to get an odom position and orientation relative to map frame
+        msg.pose.pose.position.x = (map_to_odom_.getOrigin()).getX();
+        msg.pose.pose.position.y = (map_to_odom_.getOrigin()).getY();
+        msg.pose.pose.position.z = (map_to_odom_.getOrigin()).getZ();
+        //Fill orientation
+        msg.pose.pose.orientation.x = (map_to_odom_.getRotation()).getX();
+        msg.pose.pose.orientation.y = (map_to_odom_.getRotation()).getY();
+        msg.pose.pose.orientation.z = (map_to_odom_.getRotation()).getZ();
+        msg.pose.pose.orientation.w = (map_to_odom_.getRotation()).getW();
+
+        //Need to figure out how to calculate covariance matrix
+
+        odom_pub_->publish(msg);
+
+    }
+    return;
+  }
+
   if (transform_publish_period == 0) {
     return;
   }
