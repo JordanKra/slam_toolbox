@@ -224,10 +224,18 @@ void SlamToolbox::publishTransformLoop(
   const double & transform_publish_period)
 /*****************************************************************************/
 {
+  if (transform_publish_period == 0) {
+    return;
+  }
 
+  rclcpp::Rate r(1.0 / transform_publish_period);
+
+  // Publish only odom topic and do not broadcast map->odom transform
   if(publish_odom_){
-    while(rclcpp::ok()){
+    while(rclcpp::ok()) {
+      {
         boost::mutex::scoped_lock lock(map_to_odom_mutex_);
+        
         rclcpp::Time scan_timestamp = scan_header.stamp;
         geometry_msgs::msg::PoseWithCovarianceStamped msg;
         msg.header.frame_id = odom_frame_;
@@ -245,16 +253,13 @@ void SlamToolbox::publishTransformLoop(
         //Need to figure out how to calculate covariance matrix
 
         odom_pub_->publish(msg);
-
+      }
+        r.sleep();
     }
     return;
   }
 
-  if (transform_publish_period == 0) {
-    return;
-  }
-
-  rclcpp::Rate r(1.0 / transform_publish_period);
+  // Else, do not publish odom topic but broadcast transform
   while (rclcpp::ok()) {
     {
       boost::mutex::scoped_lock lock(map_to_odom_mutex_);
