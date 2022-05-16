@@ -175,6 +175,8 @@ The following are the services/topics that are exposed for use. See the rviz plu
 ## Published topics
 
 | map  | `nav_msgs/OccupancyGrid` | occupancy grid representation of the pose-graph at `map_update_interval` frequency | 
+| slam_toolbox/odom (optional) | `nav_msgs/Odom`| odom message containing pose of the robot within the map. This allows for slam_toolbox to be used alongside sensor fusion 
+using a package like robot_localization. Publishes at `transform_publish_period` rate, enabled with `publish_odom`|
 |-----|----|----|
 
 ## Exposed Services
@@ -231,6 +233,9 @@ The following settings and options are exposed to you. My default configuration 
 `throttle_scans` - Number of scans to throttle in synchronous mode
 
 `transform_publish_period` - The map to odom transform publish period. 0 will not publish transforms
+
+`publish_odom` - If enabled, publishes pose as a message on `slam_toolbox/odom`, and disables publishing transforms. 
+This should be used if you are utilizing sensor fusion using `robot_localization`, and wish to publish a corrected map->odom transform
 
 `map_update_interval` - Interval to update the 2D occupancy map for other applications / visualization
 
