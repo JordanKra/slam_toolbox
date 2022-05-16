@@ -175,9 +175,8 @@ The following are the services/topics that are exposed for use. See the rviz plu
 ## Published topics
 
 | map  | `nav_msgs/OccupancyGrid` | occupancy grid representation of the pose-graph at `map_update_interval` frequency | 
-| slam_toolbox/odom (optional) | `nav_msgs/Odom`| odom message containing pose of the robot within the map. This allows for slam_toolbox to be used alongside sensor fusion 
-using a package like robot_localization. Publishes at `transform_publish_period` rate, enabled with `publish_odom`|
 |-----|----|----|
+| /slam_toolbox/odom (optional) | `nav_msgs/Odom` | odom message containing pose of the robot within the map. This allows for slam_toolbox to be used alongside sensor fusion using a package like robot_localization. Publishes at `transform_publish_period` rate, enabled with `publish_odom` |
 
 ## Exposed Services
 
